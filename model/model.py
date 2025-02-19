@@ -21,6 +21,22 @@ class Model(QObject):
             logos = json.load(f)
         return logos
     
+    def saveLogo(self, name: str, path: str, position: str, padding: list[int], scale: float, resolution: list[int]):
+        self.logos[name] = {
+            'path': path,
+            'position': position,
+            'padding': padding,
+            'scale': scale,
+            'resolution': resolution
+        }
+        with open('logos.json', 'w') as f:
+            json.dump(self.logos, f)
+
+    def deleteLogo(self, name: str):
+        del self.logos[name]
+        with open('logos.json', 'w') as f:
+            json.dump(self.logos, f)
+    
     def saveLogoized(self, saveName: str, saveDestination: str, image: Image):
         image = image.convert('RGB')
         image.save(os.path.join(saveDestination, saveName))
