@@ -107,10 +107,32 @@ class View(QWidget):
     def InitGenerateTab(self) -> QWidget:
         self.GenerateTab = QWidget()
         layout = QVBoxLayout()
+        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        # make tab
+        # add the layout for the image upload and logo selection
+        logoLayout = QHBoxLayout()
+        self.imagesUpload = LabeledButton("Image(s):", "Upload")
+        self.imagesUpload.clicked.connect(self.uploadImagesButtonClicked)
+        self.logoSelection = LabeledDropdown("Logo:", ["Logo 1", "Logo 2", "Logo 3", "Logo 4", "Logo 5"])
+        logoLayout.addWidget(self.imagesUpload)
+        logoLayout.addWidget(self.logoSelection)
+        layout.addLayout(logoLayout)
+
+        # add the button to the layout
+        self.generateButton = QPushButton("Generate")
+        self.generateButton.clicked.connect(self.generateButtonClicked)
+        layout.addWidget(self.generateButton)
+
+        # add the layout to the tab
+        self.GenerateTab.setLayout(layout)
 
         return self.GenerateTab
+    
+    def generateButtonClicked(self):
+        pass
+
+    def uploadImagesButtonClicked(self):
+        pass
     
     def testLogoButtonClicked(self):
         pass
