@@ -33,7 +33,7 @@ class View(QWidget):
         logoLayout = QHBoxLayout()
         self.logoName = LabeledLineEdit("Logo Name:", "Enter Logo Name")
         logoLayout.addWidget(self.logoName)
-        self.selectedLogo = LabeledDropdown("Logo Select:", ["Logo 1", "Logo 2", "Logo 3"])
+        self.selectedLogo = LabeledDropdown("Logo Select:", ["New Logo"] + sorted(self._viewModel.model.fetchLogoNames()))
         logoLayout.addWidget(self.selectedLogo)
         layout.addLayout(logoLayout)
 
@@ -114,7 +114,7 @@ class View(QWidget):
         logoLayout = QHBoxLayout()
         self.imagesUpload = LabeledButton("Image(s):", "Upload")
         self.imagesUpload.clicked.connect(self.uploadImagesButtonClicked)
-        self.logoSelection = LabeledDropdown("Logo:", ["Logo 1", "Logo 2", "Logo 3", "Logo 4", "Logo 5"])
+        self.logoSelection = LabeledDropdown("Logo:", sorted(self._viewModel.model.fetchLogoNames()))
         logoLayout.addWidget(self.imagesUpload)
         logoLayout.addWidget(self.logoSelection)
         layout.addLayout(logoLayout)

@@ -5,13 +5,13 @@ import pillow_avif
 from typing import TypedDict
 import os
 
-LOGOSTYPEHINT = TypedDict(str, {'path': str, 'position': str, 'padding': list[int], 'scale': float, 'resolution': list[int]})
+#LOGOSTYPEHINT = TypedDict(str, {'path': str, 'position': str, 'padding': list[int], 'scale': float, 'resolution': list[int]})
 
 
 class Model(QObject):
     def __init__(self):
         super().__init__()
-        self.logos : LOGOSTYPEHINT = self.fetchLogos()
+        self.logos = self.fetchLogos()
         self.logoTabSelection : str = ''
         self.generateTabSelection : str = ''
 
@@ -20,6 +20,9 @@ class Model(QObject):
         with open('logos.json') as f:
             logos = json.load(f)
         return logos
+    
+    def fetchLogoNames(self):
+        return list(self.logos.keys())
 
     def loadLogo(self, name: str):
         if name not in self.logos:
@@ -27,20 +30,28 @@ class Model(QObject):
         return self.logos[name]
     
     def saveLogo(self, name: str, path: str, position: str, padding: list[int], scale: float, resolution: list[int]):
-        self.logos[name] = {
-            'path': path,
-            'position': position,
-            'padding': padding,
-            'scale': scale,
-            'resolution': resolution
-        }
-        with open('logos.json', 'w') as f:
-            json.dump(self.logos, f)
+        try:
+            self.logos[name] = {
+                'path': path,
+                'position': position,
+                'padding': padding,
+                'scale': scale,
+                'resolution': resolution
+            }
+            with open('logos.json', 'w') as f:
+                json.dump(self.logos, f)
+            return True
+        except:
+            return False
 
     def deleteLogo(self, name: str):
-        del self.logos[name]
-        with open('logos.json', 'w') as f:
-            json.dump(self.logos, f)
+        try: 
+            del self.logos[name]
+            with open('logos.json', 'w') as f:
+                json.dump(self.logos, f)
+            return True
+        except:
+            return False
     
     def saveLogoized(self, saveName: str, saveDestination: str, image: Image):
         image = image.convert('RGB')
@@ -78,18 +89,23 @@ class Model(QObject):
         }
 
         logoizedImage = self.generateLogoized(logo, "/grid.jpg")
+        return logoizedImage
 
     def handleLogoization(self, logoName: str, images: list[str], saveDesination: str):
 
-        _logo = self.logos[logoName]
+        try:
+            _logo = self.logos[logoName]
 
-        logoizedImages = self.generateLogoized(_logo, images)
+            logoizedImages = self.generateLogoized(_logo, images)
 
-        for logoizedImage, image in zip(logoizedImages, images):
-            base_filename = os.path.basename(image)
-            stripped_filename = os.path.splitext(base_filename)[0]
-            extension = stripped_filename + '.jpg'
-            self.saveLogoized(extension, saveDesination, logoizedImage)
+            for logoizedImage, image in zip(logoizedImages, images):
+                base_filename = os.path.basename(image)
+                stripped_filename = os.path.splitext(base_filename)[0]
+                extension = stripped_filename + '.jpg'
+                self.saveLogoized(extension, saveDesination, logoizedImage)
+            return True
+        except:
+            return False
 
 
     def placeLogo(self, image: Image, logo: Image, position: str, padding: list[str]):
