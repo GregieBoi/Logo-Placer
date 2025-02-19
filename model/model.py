@@ -20,6 +20,11 @@ class Model(QObject):
         with open('logos.json') as f:
             logos = json.load(f)
         return logos
+
+    def loadLogo(self, name: str):
+        if name not in self.logos:
+            return None
+        return self.logos[name]
     
     def saveLogo(self, name: str, path: str, position: str, padding: list[int], scale: float, resolution: list[int]):
         self.logos[name] = {
