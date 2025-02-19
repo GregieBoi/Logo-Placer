@@ -56,7 +56,7 @@ class Model(QObject):
             'resolution': testResolution
         }
 
-        logoizedImage = self.generateLogoized(logo, "grid.jpg")
+        logoizedImage = self.generateLogoized(logo, "/grid.jpg")
 
     def handleLogoization(self, logoName: str, images: list[str], saveDesination: str):
 
@@ -132,8 +132,9 @@ class Model(QObject):
 
 
     def resizeLogo(self, logo: Image, scale: float, resolution: list[int]):
-        newWidth = int(resolution[0] * scale)
+        logoWidth, logoHeight = logo.size
         newHeight = int(resolution[1] * scale)
+        newWidth = int((newHeight * logoWidth) / logoHeight)
         logo = logo.resize((newWidth, newHeight))
         return logo
 
