@@ -1,0 +1,9 @@
+{
+  "name": {
+    "path": "LOGOS/name.png",
+    "position": "top left",
+    "padding": [0, 0], 
+    "scale": 1.0,
+    "resolution": [1280, 720]
+  }
+}

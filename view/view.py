@@ -95,6 +95,7 @@ class View(QWidget):
         self.saveLogoButton.clicked.connect(self.saveLogoButtonClicked)
         buttonLayout.addWidget(self.saveLogoButton)
         self.deleteLogoButton = QPushButton("Delete Logo")
+        self.deleteLogoButton.setObjectName("destructiveButton")
         self.deleteLogoButton.clicked.connect(self.deleteLogoButtonClicked)
         buttonLayout.addWidget(self.deleteLogoButton)
         layout.addLayout(buttonLayout)
