@@ -1,15 +1,15 @@
 {
   "GMF": {
-    "path": "/Users/lifecycle/Documents/SEO/SEO Images/Company Logos/GMF.png",
-    "position": "Bottom Left",
+    "path": "/Users/lifecycle/Documents/SEO/SEO Images/Company Logos/FOH.png",
+    "position": "Top Left",
     "padding": [
-      20,
-      20
+      0,
+      0
     ],
-    "scale": 0.2,
+    "scale": 1.0,
     "resolution": [
-      1200,
-      800
+      1280,
+      720
     ]
   },
   "OLT": {

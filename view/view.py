@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QLineEdit, QPushButton, QTabWidget, QFileDialog
+from PyQt6.QtWidgets import QWidget, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QLineEdit, QPushButton, QTabWidget, QFileDialog
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QImage, QPixmap, QIntValidator, QDoubleValidator
 from viewmodel.viewmodel import ViewModel
@@ -6,6 +6,7 @@ from _widgets.labeled_button import LabeledButton
 from _widgets.labeled_textedit import LabeledTextEdit
 from _widgets.labeled_dropdown import LabeledDropdown
 from _widgets.labeled_line_edit import LabeledLineEdit
+from _modals.destructive_modal import DestructiveModal
 from _modals.image_modal import ImageModal
 import os
 import re
@@ -118,7 +119,7 @@ class View(QWidget):
         self.testLogoButton.setToolTip(initialWarning)
         self.testLogoButton.clicked.connect(self.testLogoButtonClicked)
         buttonLayout.addWidget(self.testLogoButton)
-        self.saveLogoButton = QPushButton("Save Logo")
+        self.saveLogoButton = QPushButton("Save")
         self.saveLogoButton.setEnabled(False)
         self.saveLogoButton.setToolTip(initialWarning)
         self.saveLogoButton.clicked.connect(self.saveLogoButtonClicked)
@@ -321,11 +322,37 @@ class View(QWidget):
         self._viewModel.handleTestLogoization(self.uploadLogo.toolTip(), self.positionLogo.getCurrentText(), [xPad, yPad], float(self.scale.currentText()), [xRes, yRes])
 
     def saveLogoButtonClicked(self):
+
+        logos = [self.selectedLogo.dropdown.itemText(i) for i in range(self.selectedLogo.dropdown.count())]
+        if self.logoName.getText() in logos and self.logoName.getText() != self.selectedLogo.getCurrentText():
+            dialog = DestructiveModal(f"A Logo named {self.logoName.getText()} already exists. Are you sure you want to overwrite it?", "Overwrite")
+            result = dialog.exec()
+            if result == QDialog.DialogCode.Accepted:
+                xPad = int(self.Xpadding.text()) if self.Xpadding.text() != "" else 0
+                yPad = int(self.Ypadding.text()) if self.Ypadding.text() != "" else 0
+                xRes = int(self.Xresolution.text()) if self.Xresolution.text() != "" else 1280
+                yRes = int(self.Yresolution.text()) if self.Yresolution.text() != "" else 720
+                self._viewModel.saveLogo(self.logoName.getText(), self.uploadLogo.toolTip(), self.positionLogo.getCurrentText(), [xPad, yPad], float(self.scale.currentText()), [xRes, yRes])
+                return
+            text = self.saveLogoButton.text()
+            self.saveLogoButton.setText("Cancelled")
+            QTimer.singleShot(1500, lambda: self.saveLogoButton.setText(text))
+            return
         xPad = int(self.Xpadding.text()) if self.Xpadding.text() != "" else 0
         yPad = int(self.Ypadding.text()) if self.Ypadding.text() != "" else 0
         xRes = int(self.Xresolution.text()) if self.Xresolution.text() != "" else 1280
         yRes = int(self.Yresolution.text()) if self.Yresolution.text() != "" else 720
         self._viewModel.saveLogo(self.logoName.getText(), self.uploadLogo.toolTip(), self.positionLogo.getCurrentText(), [xPad, yPad], float(self.scale.currentText()), [xRes, yRes])
+        return
 
     def deleteLogoButtonClicked(self):
-        self._viewModel.deleteLogo(self.selectedLogo.getCurrentText())
+
+        dialog = DestructiveModal(f"Are you sure you want to delete {self.selectedLogo.getCurrentText()}?", "Delete")
+        result = dialog.exec()
+        if result == QDialog.DialogCode.Accepted:
+            self._viewModel.deleteLogo(self.selectedLogo.getCurrentText())
+            return
+        text = self.deleteLogoButton.text()
+        self.deleteLogoButton.setText("Cancelled")
+        QTimer.singleShot(1500, lambda: self.deleteLogoButton.setText(text))
+        return
