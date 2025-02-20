@@ -61,6 +61,7 @@ class Model(QObject):
 
         # load the logo
         _logo = logo
+        print(_logo)
         try:
             logo_image = Image.open(_logo['path'])
         except:
@@ -71,11 +72,18 @@ class Model(QObject):
         logoizedImages = []
 
         for image in images:
-            image = Image.open(image)
-            image = self.resizeImage(image, _logo['resolution'])
-            image = self.cropImage(image, _logo['resolution'])
-            image = self.placeLogo(image, logo_image, _logo['position'], _logo['padding'])
-            logoizedImages.append(image)
+            print(image)
+            _image = Image.open(image)
+            print(_image)
+            _image = self.resizeImage(_image, _logo['resolution'])
+            print(_image)
+            _image = self.cropImage(_image, _logo['resolution'])
+            print(_image)
+            _image = self.placeLogo(_image, logo_image, _logo['position'], _logo['padding'])
+            print(_image)
+            logoizedImages.append(_image)
+        
+        print(logoizedImages)
 
         return logoizedImages
     
@@ -88,8 +96,8 @@ class Model(QObject):
             'resolution': testResolution
         }
 
-        logoizedImage = self.generateLogoized(logo, "/grid.jpg")
-        return logoizedImage
+        logoizedImage = self.generateLogoized(logo, ["grid.png"])
+        return logoizedImage[0]
 
     def handleLogoization(self, logoName: str, images: list[str], saveDesination: str):
 
@@ -131,6 +139,7 @@ class Model(QObject):
             yPos = int(imageHeight - logoHeight - paddingY)
 
         image.paste(logo, (xPos, yPos), mask)
+        return image
 
     def cropImage(self, image: Image, resolution: list[int]):
         width, height = image.size

@@ -1,16 +1,25 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QTabWidget
-from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QTabWidget, QFileDialog
+from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtGui import QImage, QPixmap
 from viewmodel.viewmodel import ViewModel
 from _widgets.labeled_button import LabeledButton
 from _widgets.labeled_textedit import LabeledTextEdit
 from _widgets.labeled_dropdown import LabeledDropdown
 from _widgets.labeled_line_edit import LabeledLineEdit
+from _modals.image_modal import ImageModal
+import os
+from PIL import Image
 
 class View(QWidget):
     def __init__(self, viewModel: ViewModel):
         super().__init__()
         self._viewModel = viewModel
-        self._viewModel.doSomething.connect(self.doSomething)
+        self._viewModel.fetchedLogoNames.connect(self.fetchedLogoNames)
+        self._viewModel.logoLoaded.connect(self.logoLoaded)
+        self._viewModel.savedLogo.connect(self.savedLogo)
+        self._viewModel.deletedLogo.connect(self.deletedLogo)
+        self._viewModel.testedLogo.connect(self.testedLogo)
+        self._viewModel.logoized.connect(self.logoized)
         self.InitUi()
 
     def InitUi(self):
@@ -34,12 +43,14 @@ class View(QWidget):
         self.logoName = LabeledLineEdit("Logo Name:", "Enter Logo Name")
         logoLayout.addWidget(self.logoName)
         self.selectedLogo = LabeledDropdown("Logo Select:", ["New Logo"] + sorted(self._viewModel.model.fetchLogoNames()))
+        self.selectedLogo.currentTextChanged.connect(lambda: self._viewModel.loadLogo(self.selectedLogo.getCurrentText()))
         logoLayout.addWidget(self.selectedLogo)
         layout.addLayout(logoLayout)
 
         # layout the upload and position section
         pathLayout = QHBoxLayout()
         self.uploadLogo = LabeledButton("Logo:", "Upload")
+        self.uploadLogo.clicked.connect(self.uploadLogoButtonClicked)
         pathLayout.addWidget(self.uploadLogo)
         self.positionLogo = LabeledDropdown("Position:", ["Top Left", "Top Right", "Bottom Left", "Bottom Right"])
         pathLayout.addWidget(self.positionLogo)
@@ -129,14 +140,77 @@ class View(QWidget):
 
         return self.GenerateTab
     
+    def uploadLogoButtonClicked(self):
+
+        self.uploadLogo.setEnabled(False)
+        self.uploadLogo.button.setText("Uploading...")
+        uploadPath, _ = QFileDialog.getOpenFileName(self, 'Upload File', '', 'Images (*.png *.jpg *.jpeg *.avif)')
+        if uploadPath:
+            self.uploadLogo.setToolTip(uploadPath)
+            self.uploadLogo.button.setText("Uploaded!")
+            self.uploadLogo.setEnabled(True)
+            QTimer.singleShot(1500, lambda: self.uploadLogo.button.setText("Upload"))
+            return
+        self.uploadLogo.button.setText("Failed!")
+        self.uploadLogo.setEnabled(True)
+        QTimer.singleShot(1500, lambda: self.uploadLogo.button.setText("Upload"))
+        return
+
+        
+    def fetchedLogoNames(self, names: list):
+        pass
+
+    def logoLoaded(self, logo: dict):
+        pass
+
+    def savedLogo(self, success: bool):
+        pass
+
+    def deletedLogo(self, success: bool):
+        pass
+
+    def testedLogo(self, image: Image.Image):
+        data = image.tobytes("raw", image.mode)
+        qimage = QImage(data, image.width, image.height,
+                        {
+                            "RGB": QImage.Format.Format_RGB888,
+                            "RGBA": QImage.Format.Format_RGBA8888,
+                            "L": QImage.Format.Format_Grayscale8
+                        }[image.mode],
+                        )
+        pixmap = QPixmap(qimage)
+
+        dialog = ImageModal(self.logoName.getText(), pixmap)
+        dialog.exec()
+
+    def logoized(self, success: bool):
+        pass
+    
     def generateButtonClicked(self):
         pass
 
     def uploadImagesButtonClicked(self):
-        pass
+        self.imagesUpload.setEnabled(False)
+        self.imagesUpload.button.setText("Uploading...")
+        uploadPaths, _ = QFileDialog.getOpenFileNames(self, 'Upload File', '', 'Images (*.png *.jpg *.jpeg *.avif)')
+        if uploadPaths:
+            print("i'm here")
+            tooltip = ""
+            for path in uploadPaths:
+                tooltip += f"{path}\n"
+            self.imagesUpload.setToolTip(tooltip[:-2])
+            self.imagesUpload.button.setText("Uploaded!")
+            self.imagesUpload.setEnabled(True)
+            QTimer.singleShot(1500, lambda: self.imagesUpload.button.setText("Upload"))
+            return
+        print("no I'm here")
+        self.imagesUpload.button.setText("Failed!")
+        self.imagesUpload.setEnabled(True)
+        QTimer.singleShot(1500, lambda: self.imagesUpload.button.setText("Upload"))
+        return
     
     def testLogoButtonClicked(self):
-        pass
+        self._viewModel.handleTestLogoization(self.uploadLogo.toolTip(), self.positionLogo.getCurrentText(), [int(self.Xpadding.text()),int(self.Ypadding.text())], float(self.scale.text()), [int(self.Xresolution.text()), int(self.Yresolution.text())])
 
     def saveLogoButtonClicked(self):
         pass

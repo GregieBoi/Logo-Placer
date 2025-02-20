@@ -3,8 +3,7 @@ from model.model import Model
 from PIL import Image
 
 class ViewModel(QObject):
-    doSomething = pyqtSignal(str)
-    logoLoaded = pyqtSignal(dict)
+    logoLoaded = pyqtSignal(object)
     fetchedLogoNames = pyqtSignal(list)
     savedLogo = pyqtSignal(bool)
     deletedLogo = pyqtSignal(bool)
