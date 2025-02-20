@@ -5,8 +5,8 @@ from PIL import Image
 class ViewModel(QObject):
     logoLoaded = pyqtSignal(object)
     fetchedLogoNames = pyqtSignal(list)
-    savedLogo = pyqtSignal(bool)
-    deletedLogo = pyqtSignal(bool)
+    savedLogo = pyqtSignal(list)
+    deletedLogo = pyqtSignal(list)
     testedLogo = pyqtSignal(Image.Image)
     logoized = pyqtSignal(bool)
     

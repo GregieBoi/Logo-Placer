@@ -259,11 +259,11 @@ class View(QWidget):
         self.Yresolution.setText("")
         self.logoName.setText("")
 
-    def savedLogo(self, success: bool):
-        pass
+    def savedLogo(self, logos: list):
+        self.fetchedLogoNames(logos)
 
-    def deletedLogo(self, success: bool):
-        pass
+    def deletedLogo(self, logos: list):
+        self.fetchedLogoNames(logos)
 
     def testedLogo(self, image: Image.Image):
         data = image.tobytes("raw", image.mode)

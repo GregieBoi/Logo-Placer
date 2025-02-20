@@ -40,18 +40,18 @@ class Model(QObject):
             }
             with open('logos.json', 'w') as f:
                 json.dump(self.logos, f, indent=2)
-            return True
+            return self.fetchLogoNames()
         except:
-            return False
+            return []
 
     def deleteLogo(self, name: str):
         try: 
             del self.logos[name]
             with open('logos.json', 'w') as f:
                 json.dump(self.logos, f, indent=2)
-            return True
+            return self.fetchLogoNames()
         except:
-            return False
+            return []
     
     def saveLogoized(self, saveName: str, saveDestination: str, image: Image):
         image = image.convert('RGB')
