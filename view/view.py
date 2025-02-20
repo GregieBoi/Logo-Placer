@@ -1,6 +1,6 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QTabWidget, QFileDialog
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QLineEdit, QPushButton, QTabWidget, QFileDialog
 from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import QImage, QPixmap
+from PyQt6.QtGui import QImage, QPixmap, QIntValidator, QDoubleValidator
 from viewmodel.viewmodel import ViewModel
 from _widgets.labeled_button import LabeledButton
 from _widgets.labeled_textedit import LabeledTextEdit
@@ -8,7 +8,15 @@ from _widgets.labeled_dropdown import LabeledDropdown
 from _widgets.labeled_line_edit import LabeledLineEdit
 from _modals.image_modal import ImageModal
 import os
+import re
 from PIL import Image
+
+INTVALIDATOR = QIntValidator()
+DOUBLEVALIDATOR = QDoubleValidator()
+DOUBLEVALIDATOR.setBottom(0.01)
+DOUBLEVALIDATOR.setTop(1.00)
+DOUBLEVALIDATOR.setDecimals(2)
+
 
 class View(QWidget):
     def __init__(self, viewModel: ViewModel):
@@ -41,9 +49,11 @@ class View(QWidget):
         # layout the logo name and selection
         logoLayout = QHBoxLayout()
         self.logoName = LabeledLineEdit("Logo Name:", "Enter Logo Name")
+        self.logoName.textChanged.connect(self.canSaveLogo)
         logoLayout.addWidget(self.logoName)
         self.selectedLogo = LabeledDropdown("Logo Select:", ["New Logo"] + sorted(self._viewModel.model.fetchLogoNames()))
         self.selectedLogo.currentTextChanged.connect(lambda: self._viewModel.loadLogo(self.selectedLogo.getCurrentText()))
+        self.selectedLogo.currentTextChanged.connect(self.canSaveLogo)
         logoLayout.addWidget(self.selectedLogo)
         layout.addLayout(logoLayout)
 
@@ -67,6 +77,10 @@ class View(QWidget):
         self.Ypadding = QLineEdit()
         self.Xpadding.setPlaceholderText("0")
         self.Ypadding.setPlaceholderText("0")
+        self.Xpadding.setValidator(INTVALIDATOR)
+        self.Ypadding.setValidator(INTVALIDATOR)
+        self.Xpadding.textChanged.connect(self.canSaveLogo)
+        self.Ypadding.textChanged.connect(self.canSaveLogo)
         paddingLayout.addWidget(self.paddingLabel)
         paddingLayout.addWidget(self.Xpadding)
         paddingLayout.addWidget(self.Ypadding)
@@ -76,8 +90,8 @@ class View(QWidget):
         scaleLayout = QVBoxLayout()
         scaleLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.scaleLabel = QLabel("Scale:")
-        self.scale = QLineEdit()
-        self.scale.setPlaceholderText("1.0")
+        self.scale = QComboBox()
+        self.scale.addItems(["1.0                   ", "0.95", "0.9", "0.85", "0.8", "0.75", "0.7", "0.65", "0.6", "0.55", "0.5", "0.45", "0.4", "0.35", "0.3", "0.25", "0.2", "0.15", "0.1", "0.05"])
         scaleLayout.addWidget(self.scaleLabel)
         scaleLayout.addWidget(self.scale)
         detailsLayout.addLayout(scaleLayout)
@@ -89,6 +103,10 @@ class View(QWidget):
         self.Yresolution = QLineEdit()
         self.Xresolution.setPlaceholderText("1280")
         self.Yresolution.setPlaceholderText("720")
+        self.Xresolution.setValidator(INTVALIDATOR)
+        self.Yresolution.setValidator(INTVALIDATOR)
+        self.Xresolution.textChanged.connect(self.canSaveLogo)
+        self.Yresolution.textChanged.connect(self.canSaveLogo)
         resolutionLayout.addWidget(self.resolutionLabel)
         resolutionLayout.addWidget(self.Xresolution)
         resolutionLayout.addWidget(self.Yresolution)
@@ -99,7 +117,7 @@ class View(QWidget):
 
         # layout the button section
         buttonLayout = QHBoxLayout()
-        self.testLogoButton = QPushButton("Test Configuration")
+        self.testLogoButton = QPushButton("Test Logo")
         self.testLogoButton.clicked.connect(self.testLogoButtonClicked)
         buttonLayout.addWidget(self.testLogoButton)
         self.saveLogoButton = QPushButton("Save Logo")
@@ -139,6 +157,9 @@ class View(QWidget):
         self.GenerateTab.setLayout(layout)
 
         return self.GenerateTab
+    
+    def canSaveLogo(self):
+        pass
     
     def uploadLogoButtonClicked(self):
 
@@ -210,13 +231,10 @@ class View(QWidget):
         return
     
     def testLogoButtonClicked(self):
-        self._viewModel.handleTestLogoization(self.uploadLogo.toolTip(), self.positionLogo.getCurrentText(), [int(self.Xpadding.text()),int(self.Ypadding.text())], float(self.scale.text()), [int(self.Xresolution.text()), int(self.Yresolution.text())])
+        self._viewModel.handleTestLogoization(self.uploadLogo.toolTip(), self.positionLogo.getCurrentText(), [int(self.Xpadding.text()),int(self.Ypadding.text())], float(self.scale.currentText()), [int(self.Xresolution.text()), int(self.Yresolution.text())])
 
     def saveLogoButtonClicked(self):
-        pass
+        self._viewModel.saveLogo(self.logoName.getText(), self.uploadLogo.toolTip(), self.positionLogo.getCurrentText(), [int(self.Xpadding.text()),int(self.Ypadding.text())], float(self.scale.currentText()), [int(self.Xresolution.text()), int(self.Yresolution.text())])
 
     def deleteLogoButtonClicked(self):
-        pass
-
-    def doSomething(self, text):
-        self.label.setText(text)
+        self._viewModel.deleteLogo(self.logoName.text())

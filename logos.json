@@ -2,8 +2,53 @@
   "name": {
     "path": "LOGOS/name.png",
     "position": "top left",
-    "padding": [0, 0], 
+    "padding": [
+      0,
+      0
+    ],
     "scale": 1.0,
-    "resolution": [1280, 720]
+    "resolution": [
+      1280,
+      720
+    ]
+  },
+  "GMF": {
+    "path": "/Users/lifecycle/Documents/SEO/SEO Images/Company Logos/GMF.png",
+    "position": "Bottom Left",
+    "padding": [
+      20,
+      20
+    ],
+    "scale": 0.2,
+    "resolution": [
+      1800,
+      800
+    ]
+  },
+  "GMF2": {
+    "path": "/Users/lifecycle/Documents/SEO/SEO Images/Company Logos/GMF.png",
+    "position": "Bottom Left",
+    "padding": [
+      20,
+      20
+    ],
+    "scale": 0.2,
+    "resolution": [
+      1800,
+      800
+    ]
+  },
+  "OLT": {
+    "path": "/Users/lifecycle/Documents/SEO/SEO Images/Company Logos/OLT.png",
+    "position": "Bottom Left",
+    "padding": [
+      50,
+      25
+    ],
+    "scale": 0.3,
+    "resolution": [
+      1500,
+      843
+    ]
   }
 }

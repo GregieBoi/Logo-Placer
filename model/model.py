@@ -39,7 +39,7 @@ class Model(QObject):
                 'resolution': resolution
             }
             with open('logos.json', 'w') as f:
-                json.dump(self.logos, f)
+                json.dump(self.logos, f, indent=2)
             return True
         except:
             return False
