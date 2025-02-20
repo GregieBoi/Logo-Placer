@@ -1,17 +1,4 @@
 {
-  "name": {
-    "path": "LOGOS/name.png",
-    "position": "top left",
-    "padding": [
-      0,
-      0
-    ],
-    "scale": 1.0,
-    "resolution": [
-      1280,
-      720
-    ]
-  },
   "GMF": {
     "path": "/Users/lifecycle/Documents/SEO/SEO Images/Company Logos/GMF.png",
     "position": "Bottom Left",
@@ -21,20 +8,7 @@
     ],
     "scale": 0.2,
     "resolution": [
-      1800,
-      800
-    ]
-  },
-  "GMF2": {
-    "path": "/Users/lifecycle/Documents/SEO/SEO Images/Company Logos/GMF.png",
-    "position": "Bottom Left",
-    "padding": [
-      20,
-      20
-    ],
-    "scale": 0.2,
-    "resolution": [
-      1800,
+      1200,
       800
     ]
   },

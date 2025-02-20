@@ -48,7 +48,7 @@ class Model(QObject):
         try: 
             del self.logos[name]
             with open('logos.json', 'w') as f:
-                json.dump(self.logos, f)
+                json.dump(self.logos, f, indent=2)
             return True
         except:
             return False
@@ -61,7 +61,6 @@ class Model(QObject):
 
         # load the logo
         _logo = logo
-        print(_logo)
         try:
             logo_image = Image.open(_logo['path'])
         except:
@@ -72,18 +71,11 @@ class Model(QObject):
         logoizedImages = []
 
         for image in images:
-            print(image)
             _image = Image.open(image)
-            print(_image)
             _image = self.resizeImage(_image, _logo['resolution'])
-            print(_image)
             _image = self.cropImage(_image, _logo['resolution'])
-            print(_image)
             _image = self.placeLogo(_image, logo_image, _logo['position'], _logo['padding'])
-            print(_image)
             logoizedImages.append(_image)
-        
-        print(logoizedImages)
 
         return logoizedImages
     

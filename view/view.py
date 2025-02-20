@@ -49,11 +49,10 @@ class View(QWidget):
         # layout the logo name and selection
         logoLayout = QHBoxLayout()
         self.logoName = LabeledLineEdit("Logo Name:", "Enter Logo Name")
-        self.logoName.textChanged.connect(self.canSaveLogo)
+        self.logoName.textChanged.connect(self.canSaveAndTest)
         logoLayout.addWidget(self.logoName)
         self.selectedLogo = LabeledDropdown("Logo Select:", ["New Logo"] + sorted(self._viewModel.model.fetchLogoNames()))
         self.selectedLogo.currentTextChanged.connect(lambda: self._viewModel.loadLogo(self.selectedLogo.getCurrentText()))
-        self.selectedLogo.currentTextChanged.connect(self.canSaveLogo)
         logoLayout.addWidget(self.selectedLogo)
         layout.addLayout(logoLayout)
 
@@ -79,8 +78,6 @@ class View(QWidget):
         self.Ypadding.setPlaceholderText("0")
         self.Xpadding.setValidator(INTVALIDATOR)
         self.Ypadding.setValidator(INTVALIDATOR)
-        self.Xpadding.textChanged.connect(self.canSaveLogo)
-        self.Ypadding.textChanged.connect(self.canSaveLogo)
         paddingLayout.addWidget(self.paddingLabel)
         paddingLayout.addWidget(self.Xpadding)
         paddingLayout.addWidget(self.Ypadding)
@@ -105,8 +102,6 @@ class View(QWidget):
         self.Yresolution.setPlaceholderText("720")
         self.Xresolution.setValidator(INTVALIDATOR)
         self.Yresolution.setValidator(INTVALIDATOR)
-        self.Xresolution.textChanged.connect(self.canSaveLogo)
-        self.Yresolution.textChanged.connect(self.canSaveLogo)
         resolutionLayout.addWidget(self.resolutionLabel)
         resolutionLayout.addWidget(self.Xresolution)
         resolutionLayout.addWidget(self.Yresolution)
@@ -117,14 +112,20 @@ class View(QWidget):
 
         # layout the button section
         buttonLayout = QHBoxLayout()
+        initialWarning = "Logo name cannot be empty\nYou must upload a logo"
         self.testLogoButton = QPushButton("Test Logo")
+        self.testLogoButton.setEnabled(False)
+        self.testLogoButton.setToolTip(initialWarning)
         self.testLogoButton.clicked.connect(self.testLogoButtonClicked)
         buttonLayout.addWidget(self.testLogoButton)
         self.saveLogoButton = QPushButton("Save Logo")
+        self.saveLogoButton.setEnabled(False)
+        self.saveLogoButton.setToolTip(initialWarning)
         self.saveLogoButton.clicked.connect(self.saveLogoButtonClicked)
         buttonLayout.addWidget(self.saveLogoButton)
-        self.deleteLogoButton = QPushButton("Delete Logo")
+        self.deleteLogoButton = QPushButton("Delete")
         self.deleteLogoButton.setObjectName("destructiveButton")
+        self.deleteLogoButton.setEnabled(False)
         self.deleteLogoButton.clicked.connect(self.deleteLogoButtonClicked)
         buttonLayout.addWidget(self.deleteLogoButton)
         layout.addLayout(buttonLayout)
@@ -158,8 +159,35 @@ class View(QWidget):
 
         return self.GenerateTab
     
-    def canSaveLogo(self):
-        pass
+    def canSaveAndTest(self):
+        name = self.logoName.getText()
+        why = ""
+        if name == "New Logo":
+            why += "Logo name cannot be New Logo\n"
+        elif name.isspace() or name == "":
+            why += "Logo name cannot be empty\n"
+
+        path = self.uploadLogo.toolTip()
+        if path == "":
+            why += "You must upload a logo\n"
+        elif os.path.exists(path) == False:
+            why += "Logo does not exist\n"
+
+        why = why[:-1]
+
+        if why != "":
+            self.testLogoButton.setToolTip(why)
+            self.saveLogoButton.setToolTip(why)
+            self.testLogoButton.setEnabled(False)
+            self.saveLogoButton.setEnabled(False)
+            return
+        
+        self.testLogoButton.setToolTip("")
+        self.saveLogoButton.setToolTip("")
+        self.testLogoButton.setEnabled(True)
+        self.saveLogoButton.setEnabled(True)
+
+        
     
     def uploadLogoButtonClicked(self):
 
@@ -171,6 +199,7 @@ class View(QWidget):
             self.uploadLogo.button.setText("Uploaded!")
             self.uploadLogo.setEnabled(True)
             QTimer.singleShot(1500, lambda: self.uploadLogo.button.setText("Upload"))
+            self.canSaveAndTest()
             return
         self.uploadLogo.button.setText("Failed!")
         self.uploadLogo.setEnabled(True)
@@ -179,10 +208,55 @@ class View(QWidget):
 
         
     def fetchedLogoNames(self, names: list):
-        pass
+        currentEditingLogo = self.selectedLogo.getCurrentText()
+        currentGeneratingLogo = self.logoSelection.getCurrentText()
+        self.selectedLogo.blockSignals(True)
+        self.logoSelection.blockSignals(True)
+        self.selectedLogo.clear()
+        self.logoSelection.clear()
+        self.selectedLogo.addItems(["New Logo"] + names)
+        self.logoSelection.addItems(names)
+        if currentEditingLogo not in names:
+            self.selectedLogo.blockSignals(False)
+            self.selectedLogo.setCurrentText("New Logo")
+        else:
+            self.selectedLogo.setCurrentText(currentEditingLogo)
+            self.selectedLogo.blockSignals(False)
+        if currentGeneratingLogo not in names:
+            self.logoSelection.blockSignals(False)
+            self.logoSelection.setCurrentText(names[0])
+        else:
+            self.logoSelection.setCurrentText(currentGeneratingLogo)
+            self.logoSelection.blockSignals(False)
 
     def logoLoaded(self, logo: dict):
-        pass
+
+        if logo:
+            self.testLogoButton.setEnabled(True)
+            self.saveLogoButton.setEnabled(True)
+            self.saveLogoButton.setText("Update")
+            self.deleteLogoButton.setEnabled(True)
+            self.uploadLogo.setToolTip(logo['path'])
+            self.positionLogo.setCurrentText(logo['position'])
+            self.Xpadding.setText(str(logo['padding'][0]))
+            self.Ypadding.setText(str(logo['padding'][1]))
+            self.scale.setCurrentText(str(logo['scale']))
+            self.Xresolution.setText(str(logo['resolution'][0]))
+            self.Yresolution.setText(str(logo['resolution'][1]))
+            self.logoName.setText(self.selectedLogo.getCurrentText())
+            return
+        self.testLogoButton.setEnabled(False)
+        self.saveLogoButton.setEnabled(False)
+        self.saveLogoButton.setText("Save")
+        self.deleteLogoButton.setEnabled(False)
+        self.uploadLogo.setToolTip("")
+        self.positionLogo.setCurrentText("Top Left")
+        self.Xpadding.setText("")
+        self.Ypadding.setText("")
+        self.scale.setCurrentText("1.0                   ")
+        self.Xresolution.setText("")
+        self.Yresolution.setText("")
+        self.logoName.setText("")
 
     def savedLogo(self, success: bool):
         pass
@@ -208,33 +282,50 @@ class View(QWidget):
         pass
     
     def generateButtonClicked(self):
-        pass
+        self.generateButton.setEnabled(False)
+        self.generateButton.setText("Generating...")
+        directory = QFileDialog.getExistingDirectory(self, 'Select Output Directory')
+        if directory:
+            self._viewModel.handleLogoization(self.logoSelection.getCurrentText(), self.imagesUpload.toolTip().split("\n"), directory)
+            self.generateButton.setText("Generated!")
+            self.generateButton.setEnabled(True)
+            QTimer.singleShot(1500, lambda: self.generateButton.setText("Generate"))
+            return
+        self.generateButton.setText("Failed!")
+        self.generateButton.setEnabled(True)
+        QTimer.singleShot(1500, lambda: self.generateButton.setText("Generate"))
 
     def uploadImagesButtonClicked(self):
         self.imagesUpload.setEnabled(False)
         self.imagesUpload.button.setText("Uploading...")
         uploadPaths, _ = QFileDialog.getOpenFileNames(self, 'Upload File', '', 'Images (*.png *.jpg *.jpeg *.avif)')
         if uploadPaths:
-            print("i'm here")
             tooltip = ""
             for path in uploadPaths:
                 tooltip += f"{path}\n"
-            self.imagesUpload.setToolTip(tooltip[:-2])
+            self.imagesUpload.setToolTip(tooltip[:-1])
             self.imagesUpload.button.setText("Uploaded!")
             self.imagesUpload.setEnabled(True)
             QTimer.singleShot(1500, lambda: self.imagesUpload.button.setText("Upload"))
             return
-        print("no I'm here")
         self.imagesUpload.button.setText("Failed!")
         self.imagesUpload.setEnabled(True)
         QTimer.singleShot(1500, lambda: self.imagesUpload.button.setText("Upload"))
         return
     
     def testLogoButtonClicked(self):
-        self._viewModel.handleTestLogoization(self.uploadLogo.toolTip(), self.positionLogo.getCurrentText(), [int(self.Xpadding.text()),int(self.Ypadding.text())], float(self.scale.currentText()), [int(self.Xresolution.text()), int(self.Yresolution.text())])
+        xPad = int(self.Xpadding.text()) if self.Xpadding.text() != "" else 0
+        yPad = int(self.Ypadding.text()) if self.Ypadding.text() != "" else 0
+        xRes = int(self.Xresolution.text()) if self.Xresolution.text() != "" else 1280
+        yRes = int(self.Yresolution.text()) if self.Yresolution.text() != "" else 720
+        self._viewModel.handleTestLogoization(self.uploadLogo.toolTip(), self.positionLogo.getCurrentText(), [xPad, yPad], float(self.scale.currentText()), [xRes, yRes])
 
     def saveLogoButtonClicked(self):
-        self._viewModel.saveLogo(self.logoName.getText(), self.uploadLogo.toolTip(), self.positionLogo.getCurrentText(), [int(self.Xpadding.text()),int(self.Ypadding.text())], float(self.scale.currentText()), [int(self.Xresolution.text()), int(self.Yresolution.text())])
+        xPad = int(self.Xpadding.text()) if self.Xpadding.text() != "" else 0
+        yPad = int(self.Ypadding.text()) if self.Ypadding.text() != "" else 0
+        xRes = int(self.Xresolution.text()) if self.Xresolution.text() != "" else 1280
+        yRes = int(self.Yresolution.text()) if self.Yresolution.text() != "" else 720
+        self._viewModel.saveLogo(self.logoName.getText(), self.uploadLogo.toolTip(), self.positionLogo.getCurrentText(), [xPad, yPad], float(self.scale.currentText()), [xRes, yRes])
 
     def deleteLogoButtonClicked(self):
-        self._viewModel.deleteLogo(self.logoName.text())
+        self._viewModel.deleteLogo(self.selectedLogo.getCurrentText())
