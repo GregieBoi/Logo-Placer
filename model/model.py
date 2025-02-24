@@ -109,7 +109,7 @@ class Model(QObject):
             for logoizedImage, image in zip(logoizedImages, images):
                 base_filename = os.path.basename(image)
                 stripped_filename = os.path.splitext(base_filename)[0]
-                extension = stripped_filename + '.jpg'
+                extension = stripped_filename + ' ' +logoName + '.jpg'
                 self.saveLogoized(extension, saveDesination, logoizedImage)
             return True
         except:
