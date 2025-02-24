@@ -1,7 +1,7 @@
 # Logo Placer
 Sure you can use an image editing software like Photoshop or GIMP to place a logo on a background image, but when you have a lot of image to process, it can be a pain and take a lot of time to do it manually. 
 
-Logo Placer is a simple tool to help mitigate this pain. Create a logo profile then simply upload all the images you want to process and click generate. It may take a moment but all the images will have the logo applied to them and saved to your desired location. 
+Logo Placer is a simple desktop application to help mitigate this pain built in python using PyQt6, PIL, and the PIL avif plugin libaries. Create a logo profile then simply upload all the images you want to process and click generate. It may take a moment but all the images will have the logo applied to them and saved to your desired location. 
 
 ## How to Use
 
