@@ -7,12 +7,14 @@ class ViewModel(QObject):
     fetchedLogoNames = pyqtSignal(list)
     savedLogo = pyqtSignal(list)
     deletedLogo = pyqtSignal(list)
-    testedLogo = pyqtSignal(Image.Image)
+    testedLogo = pyqtSignal(object)
     logoized = pyqtSignal(bool)
+    error = pyqtSignal(str)
     
     def __init__(self, model: Model):
         super().__init__()
         self.model = model
+        self.model.error.connect(self.sendError)
         self.name = "ViewModel"
 
     def fetchLogoNames(self):
@@ -32,3 +34,6 @@ class ViewModel(QObject):
 
     def handleLogoization(self, logoName: str, images: list[str], saveDesination: str):
         self.logoized.emit(self.model.handleLogoization(logoName, images, saveDesination))
+
+    def sendError(self, error: str):
+        self.error.emit(error)

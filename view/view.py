@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QWidget, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QLineEdit, QPushButton, QTabWidget, QFileDialog
+from PyQt6.QtWidgets import QWidget, QDialog, QMessageBox, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QLineEdit, QPushButton, QTabWidget, QFileDialog
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QImage, QPixmap, QIntValidator, QDoubleValidator
 from viewmodel.viewmodel import ViewModel
@@ -29,6 +29,7 @@ class View(QWidget):
         self._viewModel.deletedLogo.connect(self.deletedLogo)
         self._viewModel.testedLogo.connect(self.testedLogo)
         self._viewModel.logoized.connect(self.logoized)
+        self._viewModel.error.connect(self.error)
         self.InitUi()
 
     def InitUi(self):
@@ -172,7 +173,7 @@ class View(QWidget):
         if path == "":
             why += "You must upload a logo\n"
         elif os.path.exists(path) == False:
-            why += "Logo does not exist\n"
+            why += "Logo does not exist at destination\n"
 
         why = why[:-1]
 
@@ -261,23 +262,37 @@ class View(QWidget):
 
     def savedLogo(self, logos: list):
         self.fetchedLogoNames(logos)
+        self.selectedLogo.setCurrentText(self.logoName.getText())
 
     def deletedLogo(self, logos: list):
+        self.logoName.setText("")
+        self.uploadLogo.setToolTip("")
+        self.positionLogo.setCurrentText("Top Left")
+        self.Xpadding.setText("")
+        self.Ypadding.setText("")
+        self.scale.setCurrentText("1.0                   ")
+        self.Xresolution.setText("")
+        self.Yresolution.setText("")
+        self.saveLogoButton.setText("Save")
+        self.testLogoButton.setEnabled(False)
+        self.saveLogoButton.setEnabled(False)
+        self.deleteLogoButton.setEnabled(False)
         self.fetchedLogoNames(logos)
 
     def testedLogo(self, image: Image.Image):
-        data = image.tobytes("raw", image.mode)
-        qimage = QImage(data, image.width, image.height,
-                        {
-                            "RGB": QImage.Format.Format_RGB888,
-                            "RGBA": QImage.Format.Format_RGBA8888,
-                            "L": QImage.Format.Format_Grayscale8
-                        }[image.mode],
-                        )
-        pixmap = QPixmap(qimage)
+        if image:
+            data = image.tobytes("raw", image.mode)
+            qimage = QImage(data, image.width, image.height,
+                            {
+                                "RGB": QImage.Format.Format_RGB888,
+                                "RGBA": QImage.Format.Format_RGBA8888,
+                                "L": QImage.Format.Format_Grayscale8
+                            }[image.mode],
+                            )
+            pixmap = QPixmap(qimage)
 
-        dialog = ImageModal(self.logoName.getText(), pixmap)
-        dialog.exec()
+            dialog = ImageModal(self.logoName.getText(), pixmap)
+            dialog.exec()
 
     def logoized(self, success: bool):
         pass
@@ -299,7 +314,7 @@ class View(QWidget):
     def uploadImagesButtonClicked(self):
         self.imagesUpload.setEnabled(False)
         self.imagesUpload.button.setText("Uploading...")
-        uploadPaths, _ = QFileDialog.getOpenFileNames(self, 'Upload File', '', 'Images (*.png *.jpg *.jpeg *.avif)')
+        uploadPaths, _ = QFileDialog.getOpenFileNames(self, 'Upload File', '', 'Images (*.png *.jpg *.jpeg *.avif *.webp)')
         if uploadPaths:
             tooltip = ""
             for path in uploadPaths:
@@ -332,7 +347,10 @@ class View(QWidget):
                 yPad = int(self.Ypadding.text()) if self.Ypadding.text() != "" else 0
                 xRes = int(self.Xresolution.text()) if self.Xresolution.text() != "" else 1280
                 yRes = int(self.Yresolution.text()) if self.Yresolution.text() != "" else 720
+                text = self.saveLogoButton.text()
                 self._viewModel.saveLogo(self.logoName.getText(), self.uploadLogo.toolTip(), self.positionLogo.getCurrentText(), [xPad, yPad], float(self.scale.currentText()), [xRes, yRes])
+                self.saveLogoButton.setText(text + "d!")
+                QTimer.singleShot(1500, lambda: self.saveLogoButton.setText("Update"))
                 return
             text = self.saveLogoButton.text()
             self.saveLogoButton.setText("Cancelled")
@@ -342,7 +360,10 @@ class View(QWidget):
         yPad = int(self.Ypadding.text()) if self.Ypadding.text() != "" else 0
         xRes = int(self.Xresolution.text()) if self.Xresolution.text() != "" else 1280
         yRes = int(self.Yresolution.text()) if self.Yresolution.text() != "" else 720
+        text = self.saveLogoButton.text()
         self._viewModel.saveLogo(self.logoName.getText(), self.uploadLogo.toolTip(), self.positionLogo.getCurrentText(), [xPad, yPad], float(self.scale.currentText()), [xRes, yRes])
+        self.saveLogoButton.setText(text + "d!")
+        QTimer.singleShot(1500, lambda: self.saveLogoButton.setText("Update"))
         return
 
     def deleteLogoButtonClicked(self):
@@ -356,3 +377,6 @@ class View(QWidget):
         self.deleteLogoButton.setText("Cancelled")
         QTimer.singleShot(1500, lambda: self.deleteLogoButton.setText(text))
         return
+    
+    def error(self, error: str):
+        QMessageBox.critical(self, "Error", error)

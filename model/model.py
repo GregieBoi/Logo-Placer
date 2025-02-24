@@ -1,4 +1,4 @@
-from PyQt6.QtCore import QObject
+from PyQt6.QtCore import QObject, pyqtSignal
 import json
 from PIL import Image
 import pillow_avif
@@ -9,6 +9,8 @@ import os
 
 
 class Model(QObject):
+    error = pyqtSignal(str)
+
     def __init__(self):
         super().__init__()
         self.logos = self.fetchLogos()
@@ -42,6 +44,7 @@ class Model(QObject):
                 json.dump(self.logos, f, indent=2)
             return self.fetchLogoNames()
         except:
+            self.error.emit('Error: Could not add logo')
             return []
 
     def deleteLogo(self, name: str):
@@ -51,6 +54,7 @@ class Model(QObject):
                 json.dump(self.logos, f, indent=2)
             return self.fetchLogoNames()
         except:
+            self.error.emit('Error: Could not delete logo')
             return []
     
     def saveLogoized(self, saveName: str, saveDestination: str, image: Image):
@@ -64,18 +68,22 @@ class Model(QObject):
         try:
             logo_image = Image.open(_logo['path'])
         except:
-            return "Logo not found"
+            self.error.emit('Error: Logo image not found\nPlease check the file destination is correct')
+            return []
         
         logo_image = self.resizeLogo(logo_image, _logo['scale'], _logo['resolution'])
 
         logoizedImages = []
 
         for image in images:
-            _image = Image.open(image)
-            _image = self.resizeImage(_image, _logo['resolution'])
-            _image = self.cropImage(_image, _logo['resolution'])
-            _image = self.placeLogo(_image, logo_image, _logo['position'], _logo['padding'])
-            logoizedImages.append(_image)
+            try:
+                _image = Image.open(image)
+                _image = self.resizeImage(_image, _logo['resolution'])
+                _image = self.cropImage(_image, _logo['resolution'])
+                _image = self.placeLogo(_image, logo_image, _logo['position'], _logo['padding'])
+                logoizedImages.append(_image)
+            except:
+                self.error.emit(f'Error: Could not parse {image}')
 
         return logoizedImages
     
@@ -89,7 +97,7 @@ class Model(QObject):
         }
 
         logoizedImage = self.generateLogoized(logo, ["grid.png"])
-        return logoizedImage[0]
+        return logoizedImage[0] if logoizedImage else None
 
     def handleLogoization(self, logoName: str, images: list[str], saveDesination: str):
 
