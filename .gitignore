@@ -5,3 +5,11 @@ __pycache__
 .DS_Store
 
 LOGOS/*
+
+build
+
+dist
+
+*.spec
+
+*.icns
