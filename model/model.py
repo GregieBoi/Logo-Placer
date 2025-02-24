@@ -4,6 +4,8 @@ from PIL import Image
 import pillow_avif
 from typing import TypedDict
 import os
+import sys
+import __main__
 
 #LOGOSTYPEHINT = TypedDict(str, {'path': str, 'position': str, 'padding': list[int], 'scale': float, 'resolution': list[int]})
 
@@ -19,7 +21,17 @@ class Model(QObject):
 
     def fetchLogos(self):
         logos = {}
-        with open('logos.json') as f:
+        path = ""
+        if getattr(sys, 'frozen', False):
+            try: 
+                path = os.path.dirname(sys.executable)
+                path = path.replace('MacOS', 'Resources')
+                path = os.path.join(path, 'logos.json', 'logos.json')
+            except:
+                path = os.path.join(os.path.dirname(sys.executable), 'Resources', 'logos.json', 'logos.json')
+        else:
+            path = os.path.join(os.path.dirname(__main__.__file__), 'logos.json')
+        with open(path) as f:
             logos = json.load(f)
         return logos
     
@@ -40,7 +52,17 @@ class Model(QObject):
                 'scale': scale,
                 'resolution': resolution
             }
-            with open('logos.json', 'w') as f:
+            path = ""
+            if getattr(sys, 'frozen', False):
+                try: 
+                    path = os.path.dirname(sys.executable)
+                    path = path.replace('MacOS', 'Resources')
+                    path = os.path.join(path, 'logos.json', 'logos.json')
+                except:
+                    path = os.path.join(os.path.dirname(sys.executable), 'Resources', 'logos.json', 'logos.json')
+            else:
+                path = os.path.join(os.path.dirname(__main__.__file__), 'logos.json')
+            with open(path, 'w') as f:
                 json.dump(self.logos, f, indent=2)
             return self.fetchLogoNames()
         except:
@@ -50,7 +72,17 @@ class Model(QObject):
     def deleteLogo(self, name: str):
         try: 
             del self.logos[name]
-            with open('logos.json', 'w') as f:
+            path = ""
+            if getattr(sys, 'frozen', False):
+                try: 
+                    path = os.path.dirname(sys.executable)
+                    path = path.replace('MacOS', 'Resources')
+                    path = os.path.join(path, 'logos.json', 'logos.json')
+                except:
+                    path = os.path.join(os.path.dirname(sys.executable), 'Resources', 'logos.json', 'logos.json')
+            else:
+                path = os.path.join(os.path.dirname(__main__.__file__), 'logos.json')
+            with open(path, 'w') as f:
                 json.dump(self.logos, f, indent=2)
             return self.fetchLogoNames()
         except:
@@ -96,7 +128,17 @@ class Model(QObject):
             'resolution': testResolution
         }
 
-        logoizedImage = self.generateLogoized(logo, ["grid.png"])
+        path = ""
+        if getattr(sys, 'frozen', False):
+            try: 
+                path = os.path.dirname(sys.executable)
+                path = path.replace('MacOS', 'Resources')
+                path = os.path.join(path, 'grid', 'grid.png')
+            except:
+                path = os.path.join(os.path.dirname(sys.executable), 'Resources', 'grid', 'grid.png')
+        else:
+            path = os.path.join(os.path.dirname(__main__.__file__), 'grid.png')
+        logoizedImage = self.generateLogoized(logo, [path])
         return logoizedImage[0] if logoizedImage else None
 
     def handleLogoization(self, logoName: str, images: list[str], saveDesination: str):
